@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+@theme {
+  /* Salesforce's blue, brightened for dark surfaces — the stock #0176D3 reads
+     muddy against deep navy, so interactive states step up to #1B96FF. */
+  --color-sf-blue: #0176d3;
+  --color-sf-blue-bright: #1b96ff;
+  --color-sf-blue-glow: #57a3fd;
+
+  --color-navy-900: #050a1f;
+  --color-navy-800: #0a0e27;
+  --color-navy-700: #111c44;
+  --color-navy-600: #16255a;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-navy-800);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(1, 118, 211, 0.28), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 100% 10%, rgba(87, 163, 253, 0.12), transparent 65%),
+    linear-gradient(180deg, var(--color-navy-800) 0%, var(--color-navy-700) 55%, var(--color-navy-900) 100%);
+  background-attachment: fixed;
+  color: #e8edf7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cards: faint white fill, soft blue glow border. The glow intensifies on
+   focus-within so the composer feels alive without shifting layout. */
+@utility card-glow {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(87, 163, 253, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 8px 32px rgba(3, 8, 28, 0.5),
+    0 0 40px -12px rgba(27, 150, 255, 0.25);
+  backdrop-filter: blur(12px);
+}
+
+@utility card-glow-strong {
+  border-color: rgba(87, 163, 253, 0.42);
+  box-shadow:
+    0 0 0 1px rgba(27, 150, 255, 0.15),
+    0 8px 32px rgba(3, 8, 28, 0.5),
+    0 0 56px -10px rgba(27, 150, 255, 0.45);
+}
+
+::selection {
+  background: rgba(27, 150, 255, 0.32);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(87, 163, 253, 0.2);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(87, 163, 253, 0.38);
+  background-clip: content-box;
+}
+
+/* Markdown answer body. Scoped rather than using @tailwindcss/typography to keep
+   the dependency list minimal and the rhythm tuned to this palette. */
+.answer-prose {
+  line-height: 1.7;
+  font-size: 0.9375rem;
+  color: #dbe4f3;
+}
+.answer-prose > * + * {
+  margin-top: 0.9rem;
+}
+.answer-prose h1,
+.answer-prose h2,
+.answer-prose h3 {
+  font-weight: 600;
+  color: #f2f6fd;
+  letter-spacing: -0.01em;
+  margin-top: 1.6rem;
+}
+.answer-prose h1 { font-size: 1.2rem; }
+.answer-prose h2 { font-size: 1.075rem; }
+.answer-prose h3 { font-size: 0.975rem; }
+.answer-prose > :first-child { margin-top: 0; }
+.answer-prose strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.answer-prose ul,
+.answer-prose ol {
+  padding-left: 1.3rem;
+}
+.answer-prose ul { list-style: disc; }
+.answer-prose ol { list-style: decimal; }
+.answer-prose li::marker { color: rgba(87, 163, 253, 0.75); }
+.answer-prose li + li { margin-top: 0.4rem; }
+.answer-prose a {
+  color: var(--color-sf-blue-glow);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(87, 163, 253, 0.4);
+}
+.answer-prose a:hover {
+  color: #8dc2ff;
+  text-decoration-color: currentColor;
+}
+.answer-prose code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.855em;
+  background: rgba(87, 163, 253, 0.12);
+  border: 1px solid rgba(87, 163, 253, 0.16);
+  padding: 0.1rem 0.34rem;
+  border-radius: 5px;
+  color: #b9d8ff;
+}
+.answer-prose pre {
+  background: rgba(3, 8, 28, 0.72);
+  border: 1px solid rgba(87, 163, 253, 0.16);
+  border-radius: 12px;
+  padding: 0.95rem 1.1rem;
+  overflow-x: auto;
+}
+.answer-prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #cfe2ff;
+  font-size: 0.84rem;
+}
+.answer-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  display: block;
+  overflow-x: auto;
+}
+.answer-prose th,
+.answer-prose td {
+  border: 1px solid rgba(87, 163, 253, 0.16);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.answer-prose th {
+  background: rgba(87, 163, 253, 0.09);
+  font-weight: 600;
+  color: #f2f6fd;
+}
+.answer-prose blockquote {
+  border-left: 2px solid rgba(87, 163, 253, 0.45);
+  padding-left: 0.9rem;
+  color: #aebdd6;
+}
+.answer-prose hr {
+  border-color: rgba(87, 163, 253, 0.14);
+}
+
+/* Inline citation markers — the parser emits `[[3]](url)`, and the link
+   renderer tags those with this class. */
+.citation-marker {
+  display: inline-block;
+  min-width: 1.25rem;
+  padding: 0 0.3rem;
+  margin: 0 0.06rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  text-align: center;
+  vertical-align: 1px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--color-sf-blue-glow);
+  background: rgba(87, 163, 253, 0.14);
+  border: 1px solid rgba(87, 163, 253, 0.3);
+  transition: background 120ms ease, color 120ms ease;
+}
+.citation-marker:hover {
+  background: rgba(87, 163, 253, 0.3);
+  color: #ffffff;
+}
+
+@keyframes pulse-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+.thinking-dot {
+  animation: pulse-dot 1.3s infinite ease-in-out;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in {
+  animation: rise-in 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dot, .rise-in { animation: none; }
+  html { scroll-behavior: auto; }
+}
