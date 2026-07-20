@@ -41,7 +41,7 @@ export function extractOutput(body: unknown): string | null {
     if (inner && typeof inner === "object") node = inner;
   }
 
-  if (typeof node === "string") return node;
+  if (typeof node === "string") return node.trim() ? node : null;
   if (!node || typeof node !== "object") return null;
 
   const rec = node as Record<string, unknown>;
@@ -53,9 +53,10 @@ export function extractOutput(body: unknown): string | null {
   return null;
 }
 
-// Trailing punctuation is almost always sentence punctuation, not part of the URL.
+// Trailing punctuation is almost always sentence punctuation or leftover markdown
+// (a backtick from an inline code span, a closing quote), not part of the URL.
 function tidyUrl(raw: string): string {
-  return raw.replace(/[.,;:!?'"]+$/, "");
+  return raw.replace(/[.,;:!?'"`*_)\]}]+$/, "");
 }
 
 /**
@@ -77,6 +78,30 @@ function titleFromUrl(url: URL): string {
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+/**
+ * Hosts that serve actual documentation pages.
+ *
+ * Answers routinely contain URLs that are *not* citations — OAuth answers quote
+ * endpoints like `https://login.salesforce.com/services/oauth2/token`, and some
+ * include placeholder instance URLs such as `https://yourorg.my.salesforce.com`.
+ * Treating those as sources produced a Sources block citing "Token", "Revoke",
+ * and a placeholder domain, which is worse than showing nothing. Only URLs on a
+ * docs host become citations; anything else is left in place as a plain link.
+ */
+const DOC_HOSTS = [
+  "developer.salesforce.com",
+  "help.salesforce.com",
+  "trailhead.salesforce.com",
+  "resources.docs.salesforce.com",
+  "architect.salesforce.com",
+  "admin.salesforce.com",
+];
+
+function isDocumentationUrl(url: URL): boolean {
+  const host = url.hostname.replace(/^www\./, "");
+  return DOC_HOSTS.includes(host);
 }
 
 /**
@@ -104,6 +129,10 @@ export function parseAnswer(rawOutput: string): ParsedAnswer {
       } catch {
         return match; // Not a real URL; render as-is.
       }
+
+      // Endpoints and placeholder hosts stay as plain text — remark-gfm still
+      // autolinks them, they just don't pollute the Sources block.
+      if (!isDocumentationUrl(parsed)) return match;
 
       let source = byUrl.get(url);
       if (!source) {

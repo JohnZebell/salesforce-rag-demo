@@ -4,11 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import Message, { type ChatMessage } from "./Message";
 import type { Source } from "@/lib/parse";
 
+// Chosen because they land in well-indexed parts of the corpus and come back
+// grounded. Avoid Apex-specific questions here — those docs are filtered out of
+// the index, so they answer with no citations, which undersells the demo on the
+// very first click.
+// Every entry here is verified against the live webhook to return cited sources —
+// see README. Two constraints shaped the list: Apex docs are filtered out of the
+// corpus (those answer uncited), and retrieval currently only has real depth on
+// lead conversion. Re-verify before changing any of these.
 const SAMPLE_QUESTIONS = [
-  "How do I convert a Lead via the API?",
-  "What are the governor limits for SOQL in a single transaction?",
-  "When should I use a Flow instead of an Apex trigger?",
-  "How does field-level security interact with Apex?",
+  "How do I convert a lead using the API?",
+  "What does the convertLead API return?",
+  "What are the required permissions to convert a lead?",
+  "What is the LeadConvert object?",
 ];
 
 let messageCounter = 0;

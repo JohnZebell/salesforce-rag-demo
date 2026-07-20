@@ -5,7 +5,8 @@
       "PowerShell(npm view *)",
       "PowerShell($sp = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-johnz-salesforce-rag-demo\\\\11ffd69b-251b-49b6-8878-975047249214\\\\scratchpad\"; node --experimental-strip-types --no-warnings \"$sp\\\\check-parse.mjs\")",
       "PowerShell(npm run *)",
-      "PowerShell(Get-Content *)"
+      "PowerShell(Get-Content *)",
+      "PowerShell(npm i *)"
     ]
   }
 }
