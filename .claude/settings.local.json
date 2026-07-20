@@ -6,7 +6,21 @@
       "PowerShell($sp = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-johnz-salesforce-rag-demo\\\\11ffd69b-251b-49b6-8878-975047249214\\\\scratchpad\"; node --experimental-strip-types --no-warnings \"$sp\\\\check-parse.mjs\")",
       "PowerShell(npm run *)",
       "PowerShell(Get-Content *)",
-      "PowerShell(npm i *)"
+      "PowerShell(npm i *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Select-String *)",
+      "PowerShell($py = \\(Get-Command python -ErrorAction SilentlyContinue\\).Source; if \\($py\\) { python -m py_compile ingest_salesforce_docs.py; if \\($?\\) { \"SYNTAX OK\" } } else { \"python not found locally\" })",
+      "PowerShell($g = @\\(\"C:\\\\Program Files\\\\Git\\\\cmd\\\\git.exe\",\"C:\\\\Program Files \\(x86\\)\\\\Git\\\\cmd\\\\git.exe\",\"$env:LOCALAPPDATA\\\\Programs\\\\Git\\\\cmd\\\\git.exe\"\\); foreach \\($p in $g\\) { if \\(Test-Path $p\\) { \"FOUND: $p\"; & $p --version } })",
+      "PowerShell(Get-Command *)",
+      "PowerShell(node --version; npx --version)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(node --experimental-strip-types .\\\\probe.mjs)",
+      "PowerShell(node --experimental-strip-types .\\\\probe.mjs 2>$null)",
+      "PowerShell(node --test --experimental-strip-types lib/parse.test.mjs 2>&1 | Select-Object -Last 30)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell($git = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\GitHubDesktop\\\\app-3.6.3\\\\resources\\\\app\\\\git\\\\cmd\\\\git.exe\"; & $git status --short; \"--- branch ---\"; & $git rev-parse --abbrev-ref HEAD)",
+      "PowerShell($git = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\GitHubDesktop\\\\app-3.6.3\\\\resources\\\\app\\\\git\\\\cmd\\\\git.exe\"; $msg = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-johnz-salesforce-rag-demo\\\\474f4bec-1e10-43e8-b611-b66e92163eb9\\\\scratchpad\\\\commitmsg.txt\"; & $git commit -F $msg; if \\($?\\) { \"--- committed ---\"; & $git log --oneline -1 })",
+      "PowerShell($git = \"C:\\\\Users\\\\johnz\\\\AppData\\\\Local\\\\GitHubDesktop\\\\app-3.6.3\\\\resources\\\\app\\\\git\\\\cmd\\\\git.exe\"; & $git push origin main; if \\($?\\) { \"--- pushed ---\"; & $git status -sb | Select-Object -First 1 })"
     ]
   }
 }
