@@ -2,7 +2,7 @@
  
 A retrieval-augmented (RAG) assistant grounded in tens of thousands of official Salesforce documentation pages. Ask it a real Salesforce question, it gives you a real answer, cites the exact docs it pulled from, and tells you when the docs don't actually cover something instead of making it up.
  
-**Live demo:** [your-vercel-url-here]
+**Live demo:** https://salesforce-rag-demo.vercel.app/
  
 ---
  
