@@ -9,6 +9,8 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   sources?: Source[];
+  /** Total URLs in the answer, including non-documentation ones. See ParsedAnswer. */
+  urlsFound?: number;
   isError?: boolean;
 };
 
@@ -102,6 +104,11 @@ export default function Message({ message }: { message: ChatMessage }) {
   }
 
   const sources = message.sources ?? [];
+  // Only claim the answer is ungrounded when it cites nothing whatsoever. An
+  // answer that links, say, an OAuth endpoint has URLs but no documentation
+  // sources — those links stay inline and we simply show no Sources block,
+  // rather than asserting it wasn't grounded.
+  const citesNothing = sources.length === 0 && (message.urlsFound ?? 0) === 0;
 
   return (
     <div className="rise-in card-glow rounded-2xl rounded-bl-md border-l-2 border-l-sf-blue-bright px-5 py-4">
@@ -133,7 +140,8 @@ export default function Message({ message }: { message: ChatMessage }) {
         </ReactMarkdown>
       </div>
 
-      {sources.length > 0 ? <SourceList sources={sources} /> : <NoSourcesNote />}
+      {sources.length > 0 ? <SourceList sources={sources} /> : null}
+      {citesNothing ? <NoSourcesNote /> : null}
     </div>
   );
 }

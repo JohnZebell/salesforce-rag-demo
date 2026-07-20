@@ -24,6 +24,14 @@ export type Source = {
 export type ParsedAnswer = {
   answer: string;
   sources: Source[];
+  /**
+   * Every http(s) URL in the raw output, including ones filtered out of
+   * `sources` for being on a non-docs host. The UI needs this to tell
+   * "ungrounded answer, no citations at all" apart from "cited something we
+   * don't treat as a documentation source" — showing the same "No sources
+   * cited" disclaimer for both is wrong, and was.
+   */
+  urlsFound: number;
 };
 
 /**
@@ -105,55 +113,106 @@ function isDocumentationUrl(url: URL): boolean {
 }
 
 /**
- * Matches a parenthesised URL or a bare URL. Markdown links (`[text](url)`) are
- * detected via the preceding `]` and left untouched so we don't mangle output
- * from any future workflow revision that emits proper links.
+ * The three shapes a citation arrives in, tried in this order:
+ *
+ *   1. Markdown link — `[label](url)`. Kept exactly as written so we don't
+ *      mangle a workflow revision that emits proper links, but the URL is still
+ *      registered as a source. Previously these were skipped entirely, which
+ *      meant an answer whose citations were all markdown links reported zero
+ *      sources and got the "not grounded" disclaimer.
+ *   2. Parenthesised citation — `(https://…)` and the prefixed form the agent
+ *      actually emits, `(Source: https://…)`. The prefix and the parens are
+ *      consumed along with the URL; leaving them behind produced the literal
+ *      text `(Source:  [[1]](url))` in the rendered answer. Several URLs may
+ *      share one parenthesis, comma- or semicolon-separated.
+ *   3. Bare URL sitting in the prose.
  */
-const URL_PATTERN = /(\]\s*)?\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)<>\]]+)/g;
+const CITATION_PATTERN = new RegExp(
+  [
+    String.raw`\[[^\]]*\]\((https?:\/\/[^\s)]+)\)`,
+    String.raw`\(\s*(?:sources?|see|ref(?:erence)?|from)\s*:\s*((?:https?:\/\/[^\s,;)]+)(?:\s*[,;]\s*https?:\/\/[^\s,;)]+)*)\s*\)`,
+    String.raw`\(\s*((?:https?:\/\/[^\s,;)]+)(?:\s*[,;]\s*https?:\/\/[^\s,;)]+)*)\s*\)`,
+    String.raw`(https?:\/\/[^\s)<>\]]+)`,
+  ].join("|"),
+  "gi",
+);
+
+const ANY_URL = /https?:\/\//g;
 
 export function parseAnswer(rawOutput: string): ParsedAnswer {
   const byUrl = new Map<string, Source>();
 
+  /** Register a URL as a citation. Returns its marker, or null if it isn't a
+   *  documentation URL and should be left in the prose untouched. */
+  function register(rawUrl: string): string | null {
+    const url = tidyUrl(rawUrl);
+    if (!url) return null;
+
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return null; // Not a real URL; render as-is.
+    }
+
+    // Endpoints and placeholder hosts stay as plain text — remark-gfm still
+    // autolinks them, they just don't pollute the Sources block.
+    if (!isDocumentationUrl(parsed)) return null;
+
+    let source = byUrl.get(url);
+    if (!source) {
+      source = {
+        n: byUrl.size + 1,
+        url,
+        title: titleFromUrl(parsed),
+        host: parsed.hostname.replace(/^www\./, ""),
+        path: parsed.pathname,
+      };
+      byUrl.set(url, source);
+    }
+
+    // Renders as a link whose visible text is "[3]" — a compact citation
+    // marker instead of a 100-character URL breaking up the prose.
+    return `[[${source.n}]](${url})`;
+  }
+
   const answer = rawOutput.replace(
-    URL_PATTERN,
-    (match, markdownLinkPrefix: string | undefined, parenUrl: string | undefined, bareUrl: string | undefined) => {
-      // Already a well-formed markdown link — leave it alone.
-      if (markdownLinkPrefix) return match;
-
-      const url = tidyUrl(parenUrl ?? bareUrl ?? "");
-      if (!url) return match;
-
-      let parsed: URL;
-      try {
-        parsed = new URL(url);
-      } catch {
-        return match; // Not a real URL; render as-is.
+    CITATION_PATTERN,
+    (
+      match,
+      markdownUrl: string | undefined,
+      prefixedUrls: string | undefined,
+      parenUrls: string | undefined,
+      bareUrl: string | undefined,
+    ) => {
+      // Already a well-formed markdown link: collect the citation, keep the link.
+      if (markdownUrl) {
+        register(markdownUrl);
+        return match;
       }
 
-      // Endpoints and placeholder hosts stay as plain text — remark-gfm still
-      // autolinks them, they just don't pollute the Sources block.
-      if (!isDocumentationUrl(parsed)) return match;
-
-      let source = byUrl.get(url);
-      if (!source) {
-        source = {
-          n: byUrl.size + 1,
-          url,
-          title: titleFromUrl(parsed),
-          host: parsed.hostname.replace(/^www\./, ""),
-          path: parsed.pathname,
-        };
-        byUrl.set(url, source);
+      const group = prefixedUrls ?? parenUrls;
+      if (group) {
+        const markers = group
+          .split(/\s*[,;]\s*/)
+          .map((u) => register(u))
+          .filter((m): m is string => m !== null);
+        // None of them were documentation URLs — leave the original text alone
+        // rather than stripping a "(Source: …)" the reader still wants to see.
+        return markers.length ? markers.join(" ") : match;
       }
 
-      // Renders as a link whose visible text is "[3]" — a compact citation
-      // marker instead of a 100-character URL breaking up the prose.
-      return ` [[${source.n}]](${url})`;
+      if (bareUrl) return register(bareUrl) ?? match;
+      return match;
     },
   );
 
   return {
-    answer: answer.replace(/[ \t]+\n/g, "\n").trim(),
+    answer: answer
+      .replace(/[ \t]{2,}/g, " ")
+      .replace(/[ \t]+\n/g, "\n")
+      .trim(),
     sources: [...byUrl.values()],
+    urlsFound: (rawOutput.match(ANY_URL) ?? []).length,
   };
 }

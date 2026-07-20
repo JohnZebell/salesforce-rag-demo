@@ -96,6 +96,7 @@ export default function Chat() {
       const data: {
         answer?: string;
         sources?: Source[];
+        urlsFound?: number;
         error?: string;
         remaining?: number;
       } = await response.json().catch(() => ({}));
@@ -122,6 +123,7 @@ export default function Chat() {
           role: "assistant",
           content: data.answer ?? "",
           sources: data.sources ?? [],
+          urlsFound: data.urlsFound ?? 0,
         },
       ]);
     } catch {
